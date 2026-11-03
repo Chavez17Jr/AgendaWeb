@@ -3,12 +3,15 @@ AgendaWeb · Carlos Chavez
 
 Archivos:
   index.php ............. lista de eventos (foreach + mostrarEvento) y eliminar
+  acceso.php ............ inicio de sesión y registro de cuentas
+  salir.php ............. cierre de sesión
   registrar.php ......... formulario para crear un evento
   calendario.php ........ calendario mensual con los eventos en su fecha
   editar.php ............ formulario para cambiar un evento
   funciones.php ......... funciones que comparten las páginas (validación, formulario, plantilla)
   conexion.ejemplo.php .. plantilla de conexión (cópiala como conexion.php)
-  db.sql ................ crea las tablas "categorias" y "eventos"
+  db.sql ................ crea las tablas "usuarios", "categorias" y "eventos"
+  migrar_usuarios.sql ... añade cuentas y propiedad privada de eventos a una base existente
   migrar_categorias.sql . SOLO si ya tenías la tabla eventos vieja (categoría como texto)
   css/estilos.css ....... estilos
   js/tema.js ............ modo claro / oscuro
@@ -17,8 +20,11 @@ Archivos:
 Para probarla en tu computadora:
   1. Copia conexion.ejemplo.php como conexion.php y pon tu contraseña de MySQL.
   2. En Workbench (o la terminal) ejecuta db.sql dentro de tu base (agenda2).
+     Esta instalación usa la base agenda2. Si ya tenías la agenda instalada,
+     ejecuta migrar_usuarios.sql una sola vez; crea además el respaldo
+     eventos_respaldo_p8 antes de añadir el usuario_id a eventos.
      Si tu tabla eventos es la vieja (con la columna "categoria"), ejecuta
-     después migrar_categorias.sql.
+     migrar_categorias.sql antes de migrar_usuarios.sql.
   3. En la terminal, DENTRO de esta carpeta:  php -S localhost:8000
   4. Abre http://localhost:8000
 

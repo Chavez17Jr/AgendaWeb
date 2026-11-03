@@ -1,5 +1,27 @@
 <?php
 // ════════════════════════════════════════════════════════
+
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
+
+function requerirSesion(): void
+{
+    if (empty($_SESSION['usuario_id'])) {
+        header('Location: acceso.php', true, 303);
+        exit;
+    }
+}
+
+function cerrarSesion(): void
+{
+    $_SESSION = [];
+    if (ini_get('session.use_cookies')) {
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', time() - 42000, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
+    }
+    session_destroy();
+}
 // funciones.php · lo que comparten todas las páginas
 // ════════════════════════════════════════════════════════
 
@@ -46,7 +68,7 @@ function obtenerCategorias(mysqli $mysqli): array
 // Un evento por su id, o null si no existe
 function obtenerEvento(mysqli $mysqli, int $id): ?array
 {
-    $stmt = $mysqli->prepare('SELECT id, titulo, fecha, hora, categoria_id, descripcion FROM eventos WHERE id = ?');
+    $stmt = $mysqli->prepare('SELECT id, titulo, fecha, hora, categoria_id, descripcion, usuario_id FROM eventos WHERE id = ?');
     $stmt->bind_param('i', $id);
     $stmt->execute();
     $evento = $stmt->get_result()->fetch_assoc();
@@ -133,6 +155,7 @@ function abrirPagina(string $titulo, string $actual): void
 
 <header class="navbar">
     <nav class="nav-links">
+        <span class="nav-user"><?= e($_SESSION['usuario_nombre'] ?? $_SESSION['usuario_correo'] ?? '') ?></span>
         <?php foreach ($enlaces as $href => $texto): ?>
             <?php if ($href === $actual): ?>
                 <a href="<?= e($href) ?>" class="activo" aria-current="page"><?= e($texto) ?></a>
@@ -141,6 +164,7 @@ function abrirPagina(string $titulo, string $actual): void
             <?php endif; ?>
         <?php endforeach; ?>
     </nav>
+    <a class="nav-logout" href="salir.php">Cerrar sesión</a>
     <button type="button" id="btn-theme" class="theme-toggle">🌙 Modo Oscuro</button>
 </header>
 

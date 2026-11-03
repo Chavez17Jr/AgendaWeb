@@ -4,6 +4,7 @@
 // ════════════════════════════════════════════════════════
 require 'conexion.php';
 require 'funciones.php';
+requerirSesion();
 
 // De dónde sale el id:
 //   al ABRIR (GET)   → de la URL:  editar.php?id=5  (el botón "Editar" de la lista)
@@ -12,6 +13,9 @@ $id = $_SERVER['REQUEST_METHOD'] === 'POST' ? ($_POST['id'] ?? '') : ($_GET['id'
 $id = is_string($id) && ctype_digit($id) ? (int) $id : 0;   // el id solo puede ser un número
 
 $evento = obtenerEvento($mysqli, $id);
+if ($evento !== null && (int) $evento['usuario_id'] !== (int) $_SESSION['usuario_id']) {
+    $evento = null;
+}
 if ($evento === null) {
     header('Location: index.php?aviso=noexiste', true, 303);
     exit;
@@ -31,9 +35,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // WHERE id = ?: cambia SOLO este evento
         $stmt = $mysqli->prepare(
-            'UPDATE eventos SET titulo = ?, fecha = ?, hora = ?, categoria_id = ?, descripcion = ? WHERE id = ?'
+            'UPDATE eventos SET titulo = ?, fecha = ?, hora = ?, categoria_id = ?, descripcion = ? WHERE id = ? AND usuario_id = ?'
         );
-        $stmt->bind_param('sssisi', $v['titulo'], $v['fecha'], $hora, $categoria_id, $descripcion, $id);
+        $usuarioId = (int) $_SESSION['usuario_id'];
+        $stmt->bind_param('sssisii', $v['titulo'], $v['fecha'], $hora, $categoria_id, $descripcion, $id, $usuarioId);
         $stmt->execute();
 
         header('Location: index.php?aviso=editado', true, 303);   // PRG

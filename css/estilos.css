@@ -107,9 +107,21 @@ a { color: var(--color-acento); }
   box-shadow: var(--neon-glow);
 }
 
+.auth-navbar { justify-content: space-between; }
+.auth-brand { color: var(--color-acento); font: 700 1.35rem var(--fuente-titulos); }
+.auth-card { max-width: 460px; margin: 5vh auto 0; padding: 36px; }
+.auth-eyebrow { color: var(--color-acento); font-size: .75rem; font-weight: 700; letter-spacing: .14em; margin: 0 0 10px; }
+.auth-submit { width: 100%; }
+.auth-switch { text-align: center; color: var(--color-texto-suave); margin: 22px 0 0; font-size: .92rem; }
+.auth-switch a { font-weight: 600; }
+.nav-user { align-self: center; color: var(--color-texto-suave); font-size: .85rem; }
+.nav-logout { color: var(--color-texto-suave); font-size: .9rem; font-weight: 600; text-decoration: none; }
+.nav-logout:hover { color: var(--color-acento); }
+
 @media (max-width: 640px) {
   .navbar { position: static; padding: 12px 16px; }   /* en celular no se queda fija: ocuparía media pantalla */
   .nav-links a { font-size: 1rem; }
+  .auth-card { margin-top: 2vh; padding: 24px; }
 }
 
 /* ===== 4. LAYOUTS ===== */

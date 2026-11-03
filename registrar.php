@@ -4,6 +4,7 @@
 // ════════════════════════════════════════════════════════
 require 'conexion.php';
 require 'funciones.php';
+requerirSesion();
 
 $categorias = obtenerCategorias($mysqli);
 $v = ['titulo' => '', 'fecha' => '', 'hora' => '', 'categoria_id' => '', 'descripcion' => ''];
@@ -20,9 +21,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Consulta preparada: los datos viajan aparte de la orden SQL
         $stmt = $mysqli->prepare(
-            'INSERT INTO eventos (titulo, fecha, hora, categoria_id, descripcion) VALUES (?, ?, ?, ?, ?)'
+            'INSERT INTO eventos (titulo, fecha, hora, categoria_id, descripcion, usuario_id) VALUES (?, ?, ?, ?, ?, ?)'
         );
-        $stmt->bind_param('sssis', $v['titulo'], $v['fecha'], $hora, $categoria_id, $descripcion);
+        $usuarioId = (int) $_SESSION['usuario_id'];
+        $stmt->bind_param('sssisi', $v['titulo'], $v['fecha'], $hora, $categoria_id, $descripcion, $usuarioId);
         $stmt->execute();
 
         header('Location: index.php?aviso=guardado', true, 303);   // PRG: Post → Redirect → Get

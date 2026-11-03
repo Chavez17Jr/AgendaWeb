@@ -4,9 +4,11 @@
 // ════════════════════════════════════════════════════════
 require 'conexion.php';
 require 'funciones.php';
+requerirSesion();
 
 // Los eventos, en el formato que pide FullCalendar (title, start, url)
-$filas = $mysqli->query('SELECT id, titulo, fecha, hora FROM eventos')->fetch_all(MYSQLI_ASSOC);
+$usuarioId = (int) $_SESSION['usuario_id'];
+$filas = $mysqli->query('SELECT id, titulo, fecha, hora FROM eventos WHERE usuario_id = ' . $usuarioId)->fetch_all(MYSQLI_ASSOC);
 $eventos_calendario = [];
 foreach ($filas as $f) {
     $eventos_calendario[] = [

@@ -4,14 +4,16 @@
 // ════════════════════════════════════════════════════════
 require 'conexion.php';
 require 'funciones.php';
+requerirSesion();
 
 // ---------- Eliminar: solo por POST (un enlace o una visita no pueden borrar nada) ----------
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = $_POST['eliminar_id'] ?? '';
     $id = is_string($id) && ctype_digit($id) ? (int) $id : 0;   // el id solo puede ser un número
 
-    $stmt = $mysqli->prepare('DELETE FROM eventos WHERE id = ?');   // WHERE: borra SOLO ese evento
-    $stmt->bind_param('i', $id);
+    $usuarioId = (int) $_SESSION['usuario_id'];
+    $stmt = $mysqli->prepare('DELETE FROM eventos WHERE id = ? AND usuario_id = ?');
+    $stmt->bind_param('ii', $id, $usuarioId);
     $stmt->execute();
 
     // affected_rows = cuántas filas se borraron (0 = ese evento ya no existía)
@@ -58,10 +60,12 @@ function mostrarEvento(array $ev): string
 }
 
 // ---------- Los eventos, con el nombre de su categoría (JOIN) ----------
+$usuarioId = (int) $_SESSION['usuario_id'];
 $resultado = $mysqli->query(
     'SELECT e.id, e.titulo, e.fecha, e.hora, e.descripcion, c.nombre AS categoria
        FROM eventos e
        JOIN categorias c ON c.id = e.categoria_id
+      WHERE e.usuario_id = ' . $usuarioId . '
       ORDER BY e.fecha, e.hora'
 );
 $eventos = $resultado->fetch_all(MYSQLI_ASSOC);   // un arreglo de arreglos asociativos
