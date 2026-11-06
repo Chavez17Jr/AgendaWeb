@@ -339,3 +339,25 @@ a { color: var(--color-acento); }
 [data-theme="dark"] .fc-theme-standard th,
 [data-theme="dark"] .fc-theme-standard .fc-scrollgrid { border-color: var(--color-borde); }
 [data-theme="dark"] .fc .fc-button-primary { background-color: var(--color-acento); color: #000; border: none; box-shadow: var(--neon-glow); }
+
+/* ===== 11. BUSCADOR ===== */
+.buscador { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; }
+.buscador .form-input { flex: 1 1 220px; width: auto; }
+.buscador .form-select { flex: 0 1 210px; width: auto; }
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font: inherit;
+  font-weight: 600;
+  color: var(--color-acento);
+  background-color: var(--color-superficie);
+  border: 1px solid var(--color-acento);
+  border-radius: 10px;
+  padding: 10px 16px;
+  text-decoration: none;
+  cursor: pointer;
+}
+.btn-secondary:hover { box-shadow: var(--neon-glow); }
+.empty-state { padding: 8px 0; }
+.empty-state p { margin: 0 0 14px; color: var(--color-texto-suave); }

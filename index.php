@@ -59,16 +59,48 @@ function mostrarEvento(array $ev): string
     return $html . '</article>';
 }
 
-// ---------- Los eventos, con el nombre de su categoría (JOIN) ----------
+// ---------- Búsqueda por texto y categoría (solo eventos propios) ----------
 $usuarioId = (int) $_SESSION['usuario_id'];
-$resultado = $mysqli->query(
-    'SELECT e.id, e.titulo, e.fecha, e.hora, e.descripcion, c.nombre AS categoria
-       FROM eventos e
-       JOIN categorias c ON c.id = e.categoria_id
-      WHERE e.usuario_id = ' . $usuarioId . '
-      ORDER BY e.fecha, e.hora'
-);
-$eventos = $resultado->fetch_all(MYSQLI_ASSOC);   // un arreglo de arreglos asociativos
+$qEntrada = $_GET['q'] ?? '';
+$q = mb_substr(trim(is_string($qEntrada) ? $qEntrada : ''), 0, 60);
+$categoriaEntrada = $_GET['categoria'] ?? 0;
+$categoriaId = is_scalar($categoriaEntrada) && is_numeric($categoriaEntrada)
+    ? (int) $categoriaEntrada
+    : 0;
+$categorias = $mysqli->query('SELECT id, nombre FROM categorias ORDER BY nombre')->fetch_all(MYSQLI_ASSOC);
+$idsValidos = array_map('intval', array_column($categorias, 'id'));
+if (!in_array($categoriaId, $idsValidos, true)) {
+    $categoriaId = 0;
+}
+$buscando = ($q !== '' || $categoriaId !== 0);
+
+$condiciones = ['e.usuario_id = ?'];
+$tipos = 'i';
+$valores = [$usuarioId];
+if ($q !== '') {
+    // LIKE usa % y _ como comodines; se escapan para buscar esos caracteres literalmente.
+    $patron = '%' . addcslashes($q, '%_\\') . '%';
+    $condiciones[] = '(e.titulo LIKE ? OR e.descripcion LIKE ?)';
+    $tipos .= 'ss';
+    $valores[] = $patron;
+    $valores[] = $patron;
+}
+if ($categoriaId !== 0) {
+    $condiciones[] = 'e.categoria_id = ?';
+    $tipos .= 'i';
+    $valores[] = $categoriaId;
+}
+
+$sql = 'SELECT e.id, e.titulo, e.fecha, e.hora, e.descripcion, c.nombre AS categoria
+          FROM eventos e
+          JOIN categorias c ON c.id = e.categoria_id
+         WHERE ' . implode(' AND ', $condiciones) . '
+         ORDER BY e.fecha, e.hora';
+$stmt = $mysqli->prepare($sql);
+$stmt->bind_param($tipos, ...$valores);
+$stmt->execute();
+$eventos = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$stmt->close();
 
 // ---------- Aviso después de guardar, editar o eliminar (?aviso=...) ----------
 $avisos = [
@@ -87,7 +119,30 @@ abrirPagina('Mis eventos', 'index.php');
 <div class="layout-single">
     <div class="card">
         <h1 class="card__title">Tus eventos guardados</h1>
-        <p class="card__meta"><?= $total ?> <?= $total === 1 ? 'evento' : 'eventos' ?></p>
+        <p class="card__meta">
+            <?php if ($buscando): ?>
+                <?= $total ?> resultado<?= $total === 1 ? '' : 's' ?><?= $q !== '' ? ' para «' . e($q) . '»' : '' ?>
+            <?php else: ?>
+                <?= $total ?> eventos registrados
+            <?php endif; ?>
+        </p>
+
+        <form class="buscador" method="get" action="index.php" role="search">
+            <input class="form-input" type="search" name="q" value="<?= e($q) ?>" maxlength="60"
+                   placeholder="Buscar en título o descripción…" aria-label="Buscar eventos">
+            <select class="form-select" name="categoria" aria-label="Filtrar por categoría">
+                <option value="0">Todas las categorías</option>
+                <?php foreach ($categorias as $cat): ?>
+                    <option value="<?= (int) $cat['id'] ?>" <?= $categoriaId === (int) $cat['id'] ? 'selected' : '' ?>>
+                        <?= e($cat['nombre']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+            <button type="submit" class="btn-primary">Buscar</button>
+            <?php if ($buscando): ?>
+                <a href="index.php" class="btn-secondary">Limpiar</a>
+            <?php endif; ?>
+        </form>
 
         <?php if ($aviso): ?>
             <div class="alert alert--<?= $aviso['tipo'] ?>" role="<?= $aviso['tipo'] === 'error' ? 'alert' : 'status' ?>">
@@ -95,7 +150,12 @@ abrirPagina('Mis eventos', 'index.php');
             </div>
         <?php endif; ?>
 
-        <?php if ($total === 0): ?>
+        <?php if ($total === 0 && $buscando): ?>
+            <div class="empty-state">
+                <p>Sin resultados para tu búsqueda.</p>
+                <a href="index.php" class="btn-secondary">Ver todos mis eventos</a>
+            </div>
+        <?php elseif ($total === 0): ?>
             <p class="card__meta">No tienes ningún evento guardado. <a href="registrar.php">¡Crea el primero!</a></p>
         <?php else: ?>
             <div class="event-list">
