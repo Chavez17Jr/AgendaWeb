@@ -15,7 +15,7 @@ mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 try {
     //                  servidor     usuario  contraseña  base de datos
-    $mysqli = new mysqli('localhost', 'root', 'TU_CONTRASEÑA', 'agenda2');
+    $mysqli = new mysqli('localhost', 'root', 'U-mzOO_4p5(O863Xhb', 'carlos-duty');
     $mysqli->set_charset('utf8mb4');   // acentos y ñ correctos
 } catch (mysqli_sql_exception $e) {
     http_response_code(500);
